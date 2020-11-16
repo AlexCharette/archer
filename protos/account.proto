@@ -1,0 +1,12 @@
+
+message Account {
+    required string name = 1;
+
+    required uint32 number = 2;
+
+    required sint32 balance = 3;
+}
+
+message AccountContainer {
+    repeated Account entries = 1;
+}

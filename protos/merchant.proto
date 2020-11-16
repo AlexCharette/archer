@@ -1,0 +1,10 @@
+
+message Merchant {
+    required string public_key = 1;
+    required string name = 2;
+    required uint64 timestamp = 3;
+}
+
+message MerchantContainer {
+    repeated Merchant entries = 1;
+}
