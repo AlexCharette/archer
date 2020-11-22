@@ -1,0 +1,8 @@
+[package]
+name = "archer"
+version = "0.1.0"
+authors = ["Alexander Charette <acharette.wake@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ring = "0.16.16"
