@@ -4,7 +4,7 @@ message Merchant {
     
     required string name = 2;
     
-    required uint64 timestamp = 3;
+    required sint64 timestamp = 3;
 }
 
 message MerchantContainer {

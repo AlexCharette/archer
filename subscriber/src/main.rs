@@ -1,15 +1,14 @@
-
-use std::rc::Rc;
-use std::cell::RefCell;
 use log::info;
+use std::cell::RefCell;
+use std::rc::Rc;
 
-use crate::database::{establish_connection, fetch_last_known_blocks, PgPool};
+use database::{establish_connection, fetch_last_known_blocks, PgPool};
 
-pub mod subscriber;
 pub mod event_handling;
+pub mod subscriber;
 
-use subscriber::Subscriber;
 use event_handling::get_events_handler;
+use subscriber::Subscriber;
 
 const KNOWN_COUNT: i64 = 15;
 
@@ -81,7 +80,7 @@ def main():
         LOGGER.exception('Invalid command: "%s"', opts.command)
 */
 
-pub fn run_subscriber(endpoint: &str) {
+fn main() {
     // let command = "subscribe";
     // let options = Cli;
     // match command {
@@ -113,16 +112,11 @@ def do_init(opts):
 */
 
 pub fn init(options: Cli) -> Result<(), Box<dyn std::error::Error>> {
-
     info!("Initializing subscriber");
 
     let _dsn = format!(
         "dbname={} user={} password={} host={} port={}",
-        options.db_name,
-        options.db_user,
-        options.db_password,
-        options.db_host,
-        options.db_port
+        options.db_name, options.db_user, options.db_password, options.db_host, options.db_port
     );
     // create connection with DSN
     // connect to database
@@ -130,7 +124,6 @@ pub fn init(options: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
 
 /*
 def do_subscribe(opts):
@@ -168,44 +161,43 @@ def do_subscribe(opts):
     LOGGER.info('Subscriber shut down successfully')
 */
 
-pub fn subscribe(options: Cli, pool: PgPool, endpoint: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn subscribe(
+    options: Cli,
+    pool: PgPool,
+    endpoint: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting subscriber");
 
     let _dsn = format!(
         "dbname={} user={} password={} host={} port={}",
-        options.db_name,
-        options.db_user,
-        options.db_password,
-        options.db_host,
-        options.db_port
+        options.db_name, options.db_user, options.db_password, options.db_host, options.db_port
     );
 
-    let connection = Rc::new(
-        RefCell::new(pool.get().expect("Error establishing a connection with the database"))
-    );
+    let connection = Rc::new(RefCell::new(
+        pool.get()
+            .expect("Error establishing a connection with the database"),
+    ));
 
     // create connection with DSN
     // connect to database
     let mut subscriber = Subscriber::new(endpoint);
 
-    let known_blocks = fetch_last_known_blocks(
-        KNOWN_COUNT, 
-        &Rc::clone(&connection).borrow()
-    )?;
-    
-    subscriber.add_handler(get_events_handler(pool.clone()));
+    let known_blocks = fetch_last_known_blocks(KNOWN_COUNT, &Rc::clone(&connection).borrow())?;
 
-    let known_ids: Vec<String> = known_blocks.iter().map(|block|
-        block.block_id.clone()
-    ).collect();
+    subscriber.add_handler(get_events_handler(pool));
+
+    let known_ids: Vec<String> = known_blocks
+        .iter()
+        .map(|block| block.block_id.clone())
+        .collect();
 
     subscriber.start(Some(&known_ids))?;
 
     // On interrupt
-        // disconnect from DB
-        // stop subscriber
+    // disconnect from DB
+    // stop subscriber
 
     info!("Subscriber shut down successfully");
-    
+
     Ok(())
 }

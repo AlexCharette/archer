@@ -1,6 +1,7 @@
+extern crate config;
 
-use std::convert::{TryFrom, TryInto};
 use serde::Deserialize;
+use std::convert::{TryFrom, TryInto};
 
 #[derive(Deserialize)]
 pub struct Settings {
@@ -36,17 +37,17 @@ pub fn get_configuration() -> Result<Settings, config::ConfigError> {
         .expect("Could not parse APP_ENVIRONMENT");
 
     settings.merge(
-        config::File::from(configuration_directory.join(environment.as_str())).required(true)
+        config::File::from(configuration_directory.join(environment.as_str())).required(true),
     )?;
 
-    settings.merge(config::Environment::prefix_with("archer").separator("__"))?;
+    settings.merge(config::Environment::with_prefix("archer").separator("__"))?;
 
     settings.try_into()
 }
 
 pub enum Environment {
     Local,
-    Production
+    Production,
 }
 
 impl Environment {
@@ -65,8 +66,8 @@ impl TryFrom<String> for Environment {
         match s.to_lowercase().as_str() {
             "local" => Ok(Environment::Local),
             "production" => Ok(Environment::Production),
-            other => Err(
-                format!("{} is not a supported environment: use `local` or `production`",
+            other => Err(format!(
+                "{} is not a supported environment: use `local` or `production`",
                 other
             )),
         }

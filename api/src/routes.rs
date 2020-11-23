@@ -3,31 +3,31 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use tracing::{error, info};
 
+use super::auth::hash_password;
 use super::messenger::Messenger;
 use super::AppData;
 use database::{fetch_auth, fetch_balance, PgPool};
 
 #[derive(Deserialize)]
-struct AccountData {
+pub struct AccountData {
     name: String,
     number: u32,
 }
 
 #[derive(Deserialize)]
-struct MerchantData {
+pub struct MerchantData {
     name: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+pub struct AuthData {
     public_key: String,
     password: String,
 }
 
 #[derive(Deserialize)]
-struct AuthData {
-    public_key: String,
-    password: String,
-}
-
-#[derive(Deserialize)]
-struct UpdateBalanceJson {
+pub struct UpdateBalanceJson {
     name: String,
     number: u32,
     amount: i32,
@@ -35,10 +35,10 @@ struct UpdateBalanceJson {
 
 pub async fn authenticate(
     app_data: web::Data<AppData>,
-    merchant_data: web::Json<MerchantData>,
+    auth_data: web::Json<AuthData>,
 ) -> impl Responder {
-    let secret_key = app_data.secret_key;
-    let pool = app_data.pool;
+    let secret_key = &app_data.secret_key;
+    let pool = &app_data.pool;
     /*
         body = await decode_request(request)
         required_fields = ['public_key', 'password']
@@ -62,24 +62,14 @@ pub async fn authenticate(
     */
     let connection = pool.get().expect("Could not get connection from pool");
 
-    let auth = web::block(move || fetch_auth(name, number, &*connection))
+    let public_key = auth_data.public_key.to_owned();
+    let auth = web::block(move || fetch_auth(public_key, &*connection))
         .await
         .map_err(|err| {
             error!("{}", err);
             HttpResponse::InternalServerError().finish()
         });
-
-    match balance {
-        Ok(balance) => Ok(HttpResponse::Ok().json(balance)),
-        Err(_) => {
-            let res = HttpResponse::NotFound().body(format!(
-                "No account found with name and number: {}, {}",
-                account_data.name, account_data.number
-            ));
-            Ok(res)
-        }
-    }
-    HttpResponse::Ok().body("Payload received") // TODO
+    HttpResponse::Ok().body("OK") // TODO
 }
 
 pub async fn deposit(
@@ -100,7 +90,7 @@ pub async fn deposit(
         )
         .await;
 
-    HttpResponse::Ok().body("Payload received") // TODO
+    HttpResponse::Ok().json("Deposit transaction submitted to validator")
 }
 
 pub async fn withdraw(
@@ -121,7 +111,7 @@ pub async fn withdraw(
         )
         .await;
 
-    HttpResponse::Ok().body("Payload received") // TODO
+    HttpResponse::Ok().json("Withdraw transaction submitted to validator")
 }
 
 pub async fn add_account(
@@ -141,7 +131,7 @@ pub async fn add_account(
         )
         .await;
 
-    HttpResponse::Ok().body("Payload received") // TODO
+    HttpResponse::Ok().json("Add account transaction submitted to validator")
 }
 
 pub async fn add_merchant(
@@ -152,14 +142,16 @@ pub async fn add_merchant(
 
     let (public_key, private_key): (String, String) = messenger.get_new_key_pair();
 
+    let date_time = chrono::offset::Utc::now();
     messenger
         .send_add_merchant_txn(
             &private_key,
             merchant_data.name.to_owned(),
-            NaiveDateTime::timestamp(),
+            date_time.timestamp(),
         )
         .await;
 
+    let hashed_password = hash_password(merchant_data.password.to_owned());
     /*
         encrypted_private_key = encrypt_private_key(
             request.app['aes_key'], public_key, private_key)
@@ -174,7 +166,7 @@ pub async fn add_merchant(
         return json_response({'authorization': token})
     */
 
-    HttpResponse::Ok().body("Payload received") // TODO
+    HttpResponse::Ok().json("Add merchant transaction submitted to validator")
 }
 
 pub async fn get_balance(
@@ -183,7 +175,7 @@ pub async fn get_balance(
 ) -> Result<HttpResponse, Error> {
     // TODO add authorization GUARD
     // (don't allow just anyone to reach this route, but the private key does not need to be used)
-    let pool = app_data.pool;
+    let pool = &app_data.pool;
 
     let connection = pool.get().expect("Could not get connection from pool");
 

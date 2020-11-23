@@ -3,7 +3,7 @@ use protobuf::{parse_from_bytes, Message, ProtobufError};
 use sawtooth_sdk::processor::handler::ApplyError;
 // use serde::{Serialize, Deserialize};
 
-use crate::protobuf::payload::{Payload as PayloadPB, Payload_Action};
+use archer_protobuf::payload::{Payload as PayloadPB, Payload_Action};
 
 // #[derive(Debug, Serialize, Deserialize)]
 // #[serde(rename_all = "PascalCase")]

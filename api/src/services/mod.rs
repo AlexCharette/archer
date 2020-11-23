@@ -4,8 +4,8 @@ use sawtooth_sdk::messages::batch::{Batch, BatchList};
 use sawtooth_sdk::signing::Signer;
 use std::convert::TryFrom;
 
-use crate::archer::calculate_account_address;
-use crate::protobuf::payload::{Payload as PayloadPB, Payload_Action};
+use archer::{calculate_account_address, calculate_merchant_address};
+use archer_protobuf::payload::{Payload as PayloadPB, Payload_Action};
 
 pub mod batch;
 pub mod transaction;
@@ -113,7 +113,6 @@ pub fn make_add_merchant_txn<'a>(
 
     let mut payload_pb = PayloadPB::new();
     payload_pb.set_name(name);
-    let timestamp = u64::try_from(timestamp).expect("Error converting timestamp from i64 to u64");
     payload_pb.set_timestamp(timestamp);
     payload_pb.set_action(Payload_Action::ADD_MERCHANT);
 

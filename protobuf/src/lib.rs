@@ -42,14 +42,12 @@ pub fn deserialize_data(address: &str, data: Vec<u8>) -> (ArcherTypes, Vec<Arche
 
 pub fn parse_accounts_from_proto(data: Vec<u8>) -> Vec<AccountPB> {
     let deserialized = parse_from_bytes::<AccountContainer>(&data)
-        .ok()
         .expect("Error parsing account from bytes");
     deserialized.get_entries().to_vec()
 }
 
 pub fn parse_merchants_from_proto(data: Vec<u8>) -> Vec<MerchantPB> {
     let deserialized = parse_from_bytes::<MerchantContainer>(&data)
-        .ok()
         .expect("Error parsing merchant from bytes");
     deserialized.get_entries().to_vec()
 }

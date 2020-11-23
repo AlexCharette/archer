@@ -1,6 +1,6 @@
 use super::schema::{accounts, auth, blocks, merchants};
-use diesel::{Insertable, Queryable};
 use chrono::NaiveDateTime;
+use diesel::{Insertable, Queryable};
 
 #[derive(Clone, Debug, Queryable)]
 pub struct Account {
@@ -24,15 +24,17 @@ pub struct NewAccount<'a> {
 
 #[derive(Clone, Debug, Queryable)]
 pub struct Credentials {
-    pub block_num: i64,
-    pub block_id: String,
+    pub public_key: String,
+    pub hashed_password: String,
+    pub encrypted_private_key: String,
 }
 
 #[derive(Clone, Debug, Insertable)]
 #[table_name = "auth"]
 pub struct NewCredentials<'a> {
-    pub block_num: i64,
-    pub block_id: &'a str,
+    pub public_key: &'a str,
+    pub hashed_password: &'a str,
+    pub encrypted_private_key: &'a str,
 }
 
 #[derive(Clone, Debug, Queryable)]

@@ -76,7 +76,7 @@ dependencies = [
  "regex",
  "serde 1.0.117",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.6.1",
  "sha-1",
  "slab",
  "time 0.2.23",
@@ -243,7 +243,7 @@ dependencies = [
  "regex",
  "serde 1.0.117",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.6.1",
  "socket2",
  "time 0.2.23",
  "tinyvec",
@@ -320,7 +320,10 @@ dependencies = [
  "actix-web-httpauth",
  "alcoholic_jwt",
  "archer",
+ "archer-config",
+ "archer-protobuf",
  "bcrypt",
+ "chrono",
  "database",
  "openssl",
  "protobuf",
@@ -330,6 +333,7 @@ dependencies = [
  "sawtooth-sdk",
  "serde 1.0.117",
  "tracing",
+ "tracing-actix-web",
 ]
 
 [[package]]
@@ -337,6 +341,14 @@ name = "archer"
 version = "0.1.0"
 dependencies = [
  "ring",
+]
+
+[[package]]
+name = "archer-config"
+version = "0.1.0"
+dependencies = [
+ "config",
+ "serde 1.0.117",
 ]
 
 [[package]]
@@ -402,7 +414,7 @@ dependencies = [
  "rand 0.7.3",
  "serde 1.0.117",
  "serde_json",
- "serde_urlencoded",
+ "serde_urlencoded 0.6.1",
 ]
 
 [[package]]
@@ -593,6 +605,16 @@ dependencies = [
  "serde_json",
  "toml 0.5.7",
  "yaml-rust",
+]
+
+[[package]]
+name = "console_error_panic_hook"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b8d976903543e0c48546a91908f21588a680a8c8f984df9a5d69feccb2b2a211"
+dependencies = [
+ "cfg-if 0.1.10",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -838,6 +860,7 @@ checksum = "9b3b0c040a1fe6529d30b3c5944b280c7f0dcb2930d2c3062bca967b602583d0"
 dependencies = [
  "futures-channel",
  "futures-core",
+ "futures-executor",
  "futures-io",
  "futures-sink",
  "futures-task",
@@ -859,6 +882,17 @@ name = "futures-core"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "847ce131b72ffb13b6109a221da9ad97a64cbe48feb1028356b836b47b8f1748"
+
+[[package]]
+name = "futures-executor"
+version = "0.3.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4caa2b2b68b880003057c1dd49f1ed937e38f22fcf6c212188a121f08cf40a65"
+dependencies = [
+ "futures-core",
+ "futures-task",
+ "futures-util",
+]
 
 [[package]]
 name = "futures-io"
@@ -1597,6 +1631,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c917123afa01924fc84bb20c4c03f004d9c38e5127e3c039bbf7f4b9c76a2f6b"
 
 [[package]]
+name = "pin-project-lite"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6b063f57ec186e6140e2b8b6921e5f1bd89c7356dda5b33acc5401203ca6131c"
+
+[[package]]
 name = "pin-utils"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1647,27 +1687,34 @@ dependencies = [
 [[package]]
 name = "processor"
 version = "0.1.0"
+dependencies = [
+ "archer",
+ "archer-protobuf",
+ "log 0.4.11",
+ "protobuf",
+ "sawtooth-sdk",
+]
 
 [[package]]
 name = "protobuf"
-version = "2.18.0"
+version = "2.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d147edb77bcccbfc81fabffdc7bd50c13e103b15ca1e27515fe40de69a5776b"
+checksum = "da78e04bc0e40f36df43ecc6575e4f4b180e8156c4efd73f13d5619479b05696"
 
 [[package]]
 name = "protobuf-codegen"
-version = "2.18.0"
+version = "2.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e81f70c25aab9506f87253c55f7cdcd8917635d5597382958d20025c211bbbd"
+checksum = "49b2b929363268881afe6d24351e8b711ea5a1901a5e1549d3723ebcc5d3696d"
 dependencies = [
  "protobuf",
 ]
 
 [[package]]
 name = "protobuf-codegen-pure"
-version = "2.18.0"
+version = "2.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6af8d72d9e14fd41a954f4d5b310396151437c83d2bfcbf19d3073af90e46288"
+checksum = "02a4b843fcc85f42b9f717a34481b9a323527f1b6ac62b20776514c044fc7da9"
 dependencies = [
  "protobuf",
  "protobuf-codegen",
@@ -1675,9 +1722,9 @@ dependencies = [
 
 [[package]]
 name = "protoc"
-version = "2.18.0"
+version = "2.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57408af2c106a7f08cc61e15be6a31e3ace8ea26f90dd1be1ad19abf1073d36a"
+checksum = "a2dbb118371acf8c4d45c23ad8852ab3abb07f45758fdfede9e37cad1570bbef"
 dependencies = [
  "log 0.4.11",
  "which",
@@ -1685,9 +1732,9 @@ dependencies = [
 
 [[package]]
 name = "protoc-rust"
-version = "2.18.0"
+version = "2.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "21c1582ff3efeccef1385b1c2dfaf4a9b5bc7794865624fc2a3ca9dff1145fa1"
+checksum = "da243950eeb0d0d4893413ff7ea54aec009b3ac692cd0b3bb0884094a8a72417"
 dependencies = [
  "protobuf",
  "protobuf-codegen",
@@ -1844,11 +1891,11 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.10.8"
+version = "0.10.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9eaa17ac5d7b838b7503d118fa16ad88f440498bf9ffe5424e621f93190d61e"
+checksum = "fb15d6255c792356a0f578d8a645c677904dc02e862bebe2ecc18e0c01b9a0ce"
 dependencies = [
- "base64 0.12.3",
+ "base64 0.13.0",
  "bytes",
  "encoding_rs",
  "futures-core",
@@ -1865,14 +1912,16 @@ dependencies = [
  "mime_guess",
  "native-tls",
  "percent-encoding",
- "pin-project-lite",
+ "pin-project-lite 0.2.0",
  "serde 1.0.117",
- "serde_urlencoded",
+ "serde_json",
+ "serde_urlencoded 0.7.0",
  "tokio",
  "tokio-tls",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "wasm-bindgen-test",
  "web-sys",
  "winreg 0.7.0",
 ]
@@ -1949,14 +1998,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71d301d4193d031abdd79ff7e3dd721168a9572ef3fe51a1517aba235bd8f86e"
 
 [[package]]
-name = "sawtooth-archer-test"
-version = "0.1.0"
-dependencies = [
- "config",
- "serde 1.0.117",
-]
-
-[[package]]
 name = "sawtooth-sdk"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1973,7 +2014,7 @@ dependencies = [
  "rand 0.4.6",
  "rust-crypto",
  "secp256k1",
- "uuid",
+ "uuid 0.5.1",
  "zmq",
 ]
 
@@ -1995,6 +2036,12 @@ checksum = "dc6f74fd1204073fa02d5d5d68bec8021be4c38690b61264b2fdb48083d0e7d7"
 dependencies = [
  "parking_lot",
 ]
+
+[[package]]
+name = "scoped-tls"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea6a9290e3c9cf0f18145ef7ffa62d68ee0bf5fcd651017e586dc7fd5da448c2"
 
 [[package]]
 name = "scopeguard"
@@ -2127,6 +2174,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_urlencoded"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edfa57a7f8d9c1d260a549e7224100f6c43d43f9103e06dd8b4095a9b2b43ce9"
+dependencies = [
+ "form_urlencoded",
+ "itoa",
+ "ryu",
+ "serde 1.0.117",
+]
+
+[[package]]
 name = "sha-1"
 version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2251,6 +2310,20 @@ checksum = "213701ba3370744dcd1a12960caa4843b3d68b4d1c0a5d575e0d65b2ee9d16c0"
 [[package]]
 name = "subscriber"
 version = "0.1.0"
+dependencies = [
+ "archer",
+ "archer-protobuf",
+ "chrono",
+ "database",
+ "diesel",
+ "lazy_static",
+ "log 0.4.11",
+ "protobuf",
+ "regex",
+ "sawtooth-sdk",
+ "uuid 0.8.1",
+ "zmq",
+]
 
 [[package]]
 name = "syn"
@@ -2394,7 +2467,7 @@ dependencies = [
  "memchr",
  "mio",
  "mio-uds",
- "pin-project-lite",
+ "pin-project-lite 0.1.11",
  "signal-hook-registry",
  "slab",
  "winapi 0.3.9",
@@ -2420,7 +2493,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "log 0.4.11",
- "pin-project-lite",
+ "pin-project-lite 0.1.11",
  "tokio",
 ]
 
@@ -2453,9 +2526,22 @@ checksum = "b0987850db3733619253fe60e17cb59b82d37c7e6c0236bb81e4d6b87c879f27"
 dependencies = [
  "cfg-if 0.1.10",
  "log 0.4.11",
- "pin-project-lite",
+ "pin-project-lite 0.1.11",
  "tracing-attributes",
  "tracing-core",
+]
+
+[[package]]
+name = "tracing-actix-web"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc36fc2f840643e49d220d07cd7ca81bc31c7f6df25f164d4257971533dab354"
+dependencies = [
+ "actix-web",
+ "futures",
+ "tracing",
+ "tracing-futures",
+ "uuid 0.8.1",
 ]
 
 [[package]]
@@ -2607,6 +2693,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "uuid"
+version = "0.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9fde2f6a4bea1d6e007c4ad38c6839fa71cbb63b6dbf5b595aa38dc9b1093c11"
+dependencies = [
+ "rand 0.7.3",
+]
+
+[[package]]
 name = "vcpkg"
 version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2707,6 +2802,30 @@ name = "wasm-bindgen-shared"
 version = "0.2.68"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d649a3145108d7d3fbcde896a468d1bd636791823c9921135218ad89be08307"
+
+[[package]]
+name = "wasm-bindgen-test"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "34d1cdc8b98a557f24733d50a1199c4b0635e465eecba9c45b214544da197f64"
+dependencies = [
+ "console_error_panic_hook",
+ "js-sys",
+ "scoped-tls",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "wasm-bindgen-test-macro",
+]
+
+[[package]]
+name = "wasm-bindgen-test-macro"
+version = "0.3.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8fb9c67be7439ee8ab1b7db502a49c05e51e2835b66796c705134d9b8e1a585"
+dependencies = [
+ "proc-macro2",
+ "quote",
+]
 
 [[package]]
 name = "web-sys"

@@ -4,7 +4,7 @@ use rand::{thread_rng, Rng};
 use sawtooth_sdk::messages::transaction::{Transaction, TransactionHeader};
 use sawtooth_sdk::signing::Signer;
 
-use crate::archer::to_hex_string;
+use archer::to_hex_string;
 
 pub fn make_transaction(
     payload_bytes: &Vec<u8>,

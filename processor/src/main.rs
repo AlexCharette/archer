@@ -1,3 +1,4 @@
+use archer::NAME;
 use log::info;
 use sawtooth_sdk::processor::TransactionProcessor;
 
@@ -5,11 +6,12 @@ pub mod handler;
 pub mod payload;
 pub mod state;
 
-use crate::archer::NAME;
 use handler::ArcherTransactionHandler;
 
-pub fn run_processor(endpoint: &str) {
+fn main() {
     info!("Starting the processor");
+
+    let endpoint = "";
 
     let mut processor: TransactionProcessor = TransactionProcessor::new(endpoint);
 

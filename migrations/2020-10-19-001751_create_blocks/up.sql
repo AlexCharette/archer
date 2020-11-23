@@ -24,6 +24,6 @@ CREATE TABLE merchants (
 
 CREATE TABLE auth (
     public_key VARCHAR PRIMARY KEY REFERENCES merchants(public_key),
-    hashed_password VARCHAR,
-    encrypted_private_key VARCHAR
+    hashed_password VARCHAR NOT NULL,
+    encrypted_private_key VARCHAR NOT NULL
 );

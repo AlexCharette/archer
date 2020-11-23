@@ -132,9 +132,28 @@ pub fn insert_account(
         .execute(connection)
 }
 
-pub fn fetch_auth() -> QueryResult<usize> {
+pub fn insert_merchant(
+    merchant: models::NewMerchant,
+    connection: &PgConnection,
+) -> QueryResult<usize> {
+    use schema::merchants::dsl::*;
+
+    diesel::update(merchants.filter(end_block_num.eq(merchant.end_block_num)))
+        .set(end_block_num.eq(merchant.start_block_num))
+        .execute(connection)?;
+    diesel::insert_into(merchants)
+        .values(&merchant)
+        .execute(connection)
+}
+
+pub fn fetch_auth(
+    public_key_param: String,
+    connection: &PgConnection,
+) -> QueryResult<models::Credentials> {
     use schema::auth::dsl::*;
-    Ok(())
+
+    auth.filter(public_key.eq(public_key_param))
+        .get_result::<models::Credentials>(connection)
 }
 
 #[cfg(test)]

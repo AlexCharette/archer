@@ -9,5 +9,8 @@ jobs:
   fast_finish: true
 cache: cargo
 script:
-  - cargo build --verbose --workspace
   - cargo test --verbose --workspace
+  - cargo tarpaulin --ignore-tests
+  - cargo clippy -- -D warnings
+  - cargo fmt -- --check
+  - cargo audit

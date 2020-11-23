@@ -1,10 +1,10 @@
-use crate::protobuf::account::{Account as AccountPB, AccountContainer};
-use crate::protobuf::merchant::{Merchant as MerchantPB, MerchantContainer};
 use protobuf::{parse_from_bytes, Message};
 use sawtooth_sdk::processor::handler::{ApplyError, TransactionContext};
 use std::collections::HashMap;
 
-use crate::archer::{calculate_account_address, calculate_merchant_address};
+use archer::{calculate_account_address, calculate_merchant_address};
+use archer_protobuf::account::{Account as AccountPB, AccountContainer};
+use archer_protobuf::merchant::{Merchant as MerchantPB, MerchantContainer};
 
 // TODO!! switch to address map (VERIFY?????)
 
@@ -71,10 +71,17 @@ impl<'a> ArcherState<'a> {
     }
 
     // TODO implement
-    pub fn set_merchant(&mut self, public_key: &str, name: &str) -> Result<(), ApplyError> {
+    pub fn set_merchant(
+        &mut self,
+        public_key: &str,
+        name: &str,
+        timestamp: i64,
+    ) -> Result<(), ApplyError> {
         let address: String = calculate_merchant_address(public_key);
         let mut merchant: MerchantPB = MerchantPB::new();
+        merchant.set_public_key(String::from(public_key));
         merchant.set_name(String::from(name));
+        merchant.set_timestamp(timestamp);
 
         // TODO set state
 
@@ -94,9 +101,7 @@ impl<'a> ArcherState<'a> {
         new_number: u32,
     ) -> Result<u32, ApplyError> {
         let address: String = calculate_account_address(name);
-        let state_entries = self
-            .context
-            .get_state_entries(&vec![String::from(address.clone())]);
+        let state_entries = self.context.get_state_entries(&[address.clone()]);
         match state_entries {
             Ok(entries) => {
                 let container: AccountContainer =
@@ -104,26 +109,21 @@ impl<'a> ArcherState<'a> {
                 let mut accounts = container.get_entries().to_vec();
                 let account: &mut AccountPB = accounts
                     .iter_mut()
-                    .filter(|entry| entry.get_name() == name && entry.get_number() == number)
-                    .next()
+                    .find(|entry| entry.get_name() == name && entry.get_number() == number)
                     .expect("Did not found accounts with that name");
                 account.set_number(new_number);
                 Ok(account.get_number())
             }
-            Err(_) => {
-                return Err(ApplyError::InvalidTransaction(String::from(format!(
-                    "Account not found for {}",
-                    address
-                ))))
-            }
+            Err(_) => Err(ApplyError::InvalidTransaction(format!(
+                "Account not found for {}",
+                address
+            ))),
         }
     }
 
     pub fn get_balance(&mut self, name: &str, number: u32) -> Result<i32, ApplyError> {
         let address: String = calculate_account_address(name);
-        let state_entries = self
-            .context
-            .get_state_entries(&vec![String::from(address.clone())]);
+        let state_entries = self.context.get_state_entries(&[address.clone()]);
         match state_entries {
             Ok(entries) => {
                 let container: AccountContainer =
@@ -131,17 +131,14 @@ impl<'a> ArcherState<'a> {
                 let account: &AccountPB = container
                     .entries
                     .iter()
-                    .filter(|entry| entry.get_name() == name && entry.get_number() == number)
-                    .next()
+                    .find(|entry| entry.get_name() == name && entry.get_number() == number)
                     .expect("Did not found accounts with that name");
                 Ok(account.get_balance())
             }
-            Err(_) => {
-                return Err(ApplyError::InvalidTransaction(String::from(format!(
-                    "Account not found for {}",
-                    address
-                ))))
-            }
+            Err(_) => Err(ApplyError::InvalidTransaction(format!(
+                "Account not found for {}",
+                address
+            ))),
         }
     }
 
@@ -166,7 +163,7 @@ impl<'a> ArcherState<'a> {
         number: u32,
         amount: i32,
     ) -> Result<(), ApplyError> {
-        let state_entries = self.context.get_state_entries(&vec![String::from(address)]);
+        let state_entries = self.context.get_state_entries(&[String::from(address)]);
         match state_entries {
             Ok(entries) => {
                 let container: AccountContainer =
@@ -174,15 +171,15 @@ impl<'a> ArcherState<'a> {
                 let mut accounts = container.get_entries().to_vec();
                 let account: &mut AccountPB = accounts
                     .iter_mut()
-                    .filter(|entry| entry.get_name() == name && entry.get_number() == number)
-                    .next()
+                    .find(|entry| entry.get_name() == name && entry.get_number() == number)
                     .expect("Did not found accounts with that name");
 
                 let balance = account.get_balance();
-                // If the amount is negative, check if balance + amount < 0
-                if amount < 0 && balance + amount >= 0 {
+                // If a withdrawal is request, ensure the amount is not greater than the balance
+                if amount < 0 && (balance + amount) >= 0 {
                     account.set_balance(balance + amount);
-                } else if amount >= 0 {
+                // If a deposit is requested, simply deposit the amount
+                } else if amount > 0 {
                     account.set_balance(balance + amount);
                 } else {
                     return Err(ApplyError::InvalidTransaction(String::from(
@@ -199,12 +196,10 @@ impl<'a> ArcherState<'a> {
                 self.context.set_state_entry(String::from(address), data)?;
                 Ok(())
             }
-            Err(_) => {
-                return Err(ApplyError::InvalidTransaction(String::from(format!(
-                    "Account not found for {}",
-                    address
-                ))))
-            }
+            Err(_) => Err(ApplyError::InvalidTransaction(format!(
+                "Account not found for {}",
+                address
+            ))),
         }
     }
 

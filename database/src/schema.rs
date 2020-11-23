@@ -11,8 +11,8 @@ table! {
 table! {
     auth (public_key) {
         public_key -> Varchar,
-        hashed_password -> Nullable<Varchar>,
-        encrypted_private_key -> Nullable<Varchar>,
+        hashed_password -> Varchar,
+        encrypted_private_key -> Varchar,
     }
 }
 
@@ -35,9 +35,4 @@ table! {
 
 joinable!(auth -> merchants (public_key));
 
-allow_tables_to_appear_in_same_query!(
-    accounts,
-    auth,
-    blocks,
-    merchants,
-);
+allow_tables_to_appear_in_same_query!(accounts, auth, blocks, merchants,);

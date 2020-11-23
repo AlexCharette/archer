@@ -1,10 +1,10 @@
 // use std::convert::TryFrom;
-use log::{error, info};
 use serde::Deserialize;
 use std::sync::Arc;
+use tracing::{error, info};
 // use diesel::pg::PgConnection;
 use actix_web::dev::{Server, ServiceRequest};
-use actix_web::{get, post, put, web, App, Error, HttpServer};
+use actix_web::{web, App, Error, HttpServer};
 use actix_web_httpauth::extractors::bearer::{BearerAuth, Config};
 use actix_web_httpauth::extractors::AuthenticationError;
 use actix_web_httpauth::middleware::HttpAuthentication;
@@ -16,8 +16,8 @@ pub mod messenger;
 pub mod routes;
 pub mod services;
 
+use archer_config::get_configuration;
 use database::{establish_connection, PgPool};
-use routes;
 
 pub struct AppData {
     pool: PgPool,
@@ -26,8 +26,8 @@ pub struct AppData {
 }
 
 #[actix_rt::main]
-async fn main(pool: PgPool, endpoint: String) -> std::io::Result<()> {
-    let pool = establish_connection().expect("Could not connect to the database");
+async fn main() -> std::io::Result<()> {
+    let pool = establish_connection();
 
     let configuration = get_configuration().expect("Failed to read configuration.");
 
@@ -38,32 +38,34 @@ async fn main(pool: PgPool, endpoint: String) -> std::io::Result<()> {
 
     let listener = TcpListener::bind(address)?;
 
-    run(listener, connection_pool)?.await?;
+    run(listener, pool)?.await?;
 
     Ok(())
 }
 
 fn run(listener: TcpListener, pool: PgPool) -> Result<Server, std::io::Error> {
-    let auth = HttpAuthentication::bearer(validator);
+    
 
     // TODO !! find solution for keys in production
     let data = web::Data::new(AppData {
-        pool: pool,
+        pool,
         aes_key: String::from("ffffffffffffffffffffffffffffffff"),
         secret_key: String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"),
     });
 
     let server = HttpServer::new(move || {
+        let auth = HttpAuthentication::bearer(validator);
+        
         App::new()
             .wrap(auth)
             .wrap(TracingLogger)
             .data(data.clone())
-            .route("/health-check", get().to(routes::health_check))
-            .route("/balance", get().to(routes::get_balance))
-            .route("/withdraw", put().to(routes::withdraw))
-            .route("/deposit", put().to(routes::deposit))
-            .route("/add-acount", post().to(routes::add_account))
-            .route("/add-merchant", post().to(routes::add_merchant))
+            .route("/health-check", web::get().to(routes::health_check))
+            .route("/balance", web::get().to(routes::get_balance))
+            .route("/withdraw", web::put().to(routes::withdraw))
+            .route("/deposit", web::put().to(routes::deposit))
+            .route("/add-acount", web::post().to(routes::add_account))
+            .route("/add-merchant", web::post().to(routes::add_merchant))
     })
     .listen(listener)?
     .run();
@@ -77,10 +79,10 @@ async fn validator(
 ) -> Result<ServiceRequest, Error> {
     let config = request
         .app_data::<Config>()
-        .map(|data| data.get_ref().clone())
+        .map(|data| data.clone())
         .unwrap_or_else(Default::default);
 
-    match auth::validate_token(credentials.token()) {
+    match auth::validate_token(credentials.token()).await {
         Ok(res) => {
             if res == true {
                 Ok(request)
@@ -103,6 +105,7 @@ fn encrypt_private_key(aes_key: String, public_key: String, private_key: String)
     // get bytes from hex (public key[..32])
     // generate a cipher using AES
     // encrypt private key
+    String::from("")
 }
 
 /*
@@ -117,6 +120,7 @@ fn decrypt_private_key(aes_key: String, public_key: String, private_key: String)
     // get bytes from hex (public key[..32])
     // generate a cipher using AES
     // get private key by decrypting it using the cipher
+    String::from("")
 }
 
 /*

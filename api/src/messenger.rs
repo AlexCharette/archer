@@ -1,7 +1,6 @@
 use super::services::{
     make_add_account_txn, make_add_merchant_txn, make_deposit_txn, make_withdraw_txn,
 };
-use log::{error, info};
 use protobuf::parse_from_bytes;
 use reqwest::Client;
 use sawtooth_sdk::messages::client_batch_submit::{
@@ -11,6 +10,7 @@ use sawtooth_sdk::signing::{
     create_context, secp256k1, Context, CryptoFactory, PrivateKey, Signer,
 };
 use std::sync::Arc;
+use tracing::{error, info};
 
 pub struct Messenger<'a> {
     client: Client,
@@ -28,7 +28,7 @@ impl Messenger<'_> {
             .expect("Error creating new random private key");
 
         Messenger {
-            client: client,
+            client,
             context: Arc::new(context),
             batch_private_key: Arc::new(batch_private_key),
         }
