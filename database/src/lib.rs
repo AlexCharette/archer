@@ -163,17 +163,3 @@ pub fn fetch_auth(
     auth.filter(public_key.eq(public_key_param))
         .get_result::<models::Credentials>(connection)
 }
-
-// #[cfg(test)]
-// mod test {
-//     use super::*;
-
-//     #[test]
-//     fn test_init_pool() {}
-
-//     #[test]
-//     fn test_establish_connection() {}
-
-//     #[test]
-//     fn test_commit() {}
-// }

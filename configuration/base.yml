@@ -6,3 +6,9 @@ database:
   username: "acharette"
   password: "centralcommand1!"
   name: "archer_test"
+subscriber:
+  host: "localhost"
+  port: 8008
+validator:
+  host: "localhost"
+  port: 4004

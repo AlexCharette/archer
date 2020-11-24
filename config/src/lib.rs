@@ -7,6 +7,8 @@ use std::convert::{TryFrom, TryInto};
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
+    pub subscriber: SubscriberSettings,
+    pub validator: ValidatorSettings,
 }
 
 #[derive(Deserialize)]
@@ -20,6 +22,18 @@ pub struct DatabaseSettings {
 
 #[derive(Deserialize)]
 pub struct ApplicationSettings {
+    pub port: u16,
+    pub host: String,
+}
+
+#[derive(Deserialize)]
+pub struct SubscriberSettings {
+    pub port: u16,
+    pub host: String,
+}
+
+#[derive(Deserialize)]
+pub struct ValidatorSettings {
     pub port: u16,
     pub host: String,
 }
