@@ -45,14 +45,14 @@ impl ArcherStructs {
     pub fn account(self) -> Option<Account> {
         match self {
             ArcherStructs::Account(account) => Some(account),
-            ArcherStructs::Merchant(account) => None,
+            ArcherStructs::Merchant(_merchant) => None,
         }
     }
 
     pub fn merchant(self) -> Option<Merchant> {
         match self {
             ArcherStructs::Merchant(merchant) => Some(merchant),
-            ArcherStructs::Account(merchant) => None,
+            ArcherStructs::Account(_account) => None,
         }
     }
 }

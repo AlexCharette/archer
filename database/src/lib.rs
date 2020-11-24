@@ -146,6 +146,14 @@ pub fn insert_merchant(
         .execute(connection)
 }
 
+pub fn insert_auth(credentials: models::NewCredentials, connection: &PgConnection) -> QueryResult<usize> {
+    use schema::auth::dsl::*;
+
+    diesel::insert_into(auth)
+        .values(&credentials)
+        .execute(connection)
+}
+
 pub fn fetch_auth(
     public_key_param: String,
     connection: &PgConnection,
@@ -156,16 +164,16 @@ pub fn fetch_auth(
         .get_result::<models::Credentials>(connection)
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
+// #[cfg(test)]
+// mod test {
+//     use super::*;
 
-    #[test]
-    fn test_init_pool() {}
+//     #[test]
+//     fn test_init_pool() {}
 
-    #[test]
-    fn test_establish_connection() {}
+//     #[test]
+//     fn test_establish_connection() {}
 
-    #[test]
-    fn test_commit() {}
-}
+//     #[test]
+//     fn test_commit() {}
+// }

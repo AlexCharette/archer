@@ -6,52 +6,19 @@ use archer::{calculate_account_address, calculate_merchant_address};
 use archer_protobuf::account::{Account as AccountPB, AccountContainer};
 use archer_protobuf::merchant::{Merchant as MerchantPB, MerchantContainer};
 
-// TODO!! switch to address map (VERIFY?????)
-
 pub struct ArcherState<'a> {
     context: &'a mut dyn TransactionContext,
-    address_map: HashMap<String, Option<String>>,
+    _address_map: HashMap<String, Option<String>>,
 }
 
 impl<'a> ArcherState<'a> {
     pub fn new(context: &'a mut dyn TransactionContext) -> ArcherState {
         ArcherState {
             context: context,
-            address_map: HashMap::new(),
+            _address_map: HashMap::new(),
         }
     }
 
-    /*
-        fn _store_game(
-        &mut self,
-        game_name: &str,
-        games: HashMap<String, Game>,
-    ) -> Result<(), ApplyError> {
-        let address = XoState::calculate_address(game_name);
-        let state_string = Game::serialize_games(games);
-        self.address_map
-            .insert(address.clone(), Some(state_string.clone()));
-        self.context
-            .set_state(&address, &state_string.into_bytes())?;
-        Ok(())
-
-     def set_agent(self, public_key, name, timestamp):
-        address = addresser.get_agent_address(public_key)
-        agent = agent_pb2.Agent(
-            public_key=public_key, name=name, timestamp=timestamp)
-        container = agent_pb2.AgentContainer()
-        state_entries = self._context.get_state(
-            addresses=[address], timeout=self._timeout)
-        if state_entries:
-            container.ParseFromString(state_entries[0].data)
-
-        container.entries.extend([agent])
-        data = container.SerializeToString()
-
-        updated_state = {}
-        updated_state[address] = data
-        self._context.set_state(updated_state, timeout=self._timeout)
-    */
     pub fn set_account(&mut self, name: &str, number: u32) -> Result<(), ApplyError> {
         let address: String = calculate_account_address(name);
         let mut account: AccountPB = AccountPB::new();
@@ -59,14 +26,29 @@ impl<'a> ArcherState<'a> {
         account.set_number(number);
         account.set_balance(0);
 
-        // TODO set state
+        let mut container: AccountContainer;
 
-        // let container: AccountContainer = parse_from_bytes();
+        let state_entries = self.context.get_state_entries(&[address.clone()]);
+        match state_entries {
+            Ok(entries) => {
+                container = parse_from_bytes(&entries[0].1)
+                    .expect("Error converting state entry to account container");
+            }
+            Err(_) => {
+                container = AccountContainer::new();
+            }
+        };
 
-        // let state_string =
+        container.entries.push(account);
 
-        // self.address_map.insert(address.clone(), Some())
-        // self.context.set_state_entry(address, data)
+        let data = container
+            .write_to_bytes()
+            .expect("Error serializing container");
+
+        self.context
+            .set_state_entry(address, data)
+            .expect("Error setting state entry");
+
         Ok(())
     }
 
@@ -83,14 +65,29 @@ impl<'a> ArcherState<'a> {
         merchant.set_name(String::from(name));
         merchant.set_timestamp(timestamp);
 
-        // TODO set state
+        let mut container: MerchantContainer;
 
-        // let container: AccountContainer = parse_from_bytes();
+        let state_entries = self.context.get_state_entries(&[address.clone()]);
+        match state_entries {
+            Ok(entries) => {
+                container = parse_from_bytes(&entries[0].1)
+                    .expect("Error converting state entry to merchant container");
+            }
+            Err(_) => {
+                container = MerchantContainer::new();
+            }
+        };
 
-        // let state_string =
+        container.entries.push(merchant);
 
-        // self.address_map.insert(address.clone(), Some())
-        // self.context.set_state_entry(address, data)
+        let data = container
+            .write_to_bytes()
+            .expect("Error serializing container");
+
+        self.context
+            .set_state_entry(address, data)
+            .expect("Error setting state entry");
+
         Ok(())
     }
 

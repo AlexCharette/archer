@@ -3,14 +3,14 @@
 
 // TODO implement errors
 
-#[derive(Debug)]
-enum ApiError {
-    BadRequest(),
-    InternalError(),
-    Unauthorized(),
-    NotFound(),
-    Other,
-}
+// #[derive(Debug)]
+// enum ApiError {
+//     BadRequest(),
+//     InternalError(),
+//     Unauthorized(),
+//     NotFound(),
+//     Other,
+// }
 
 // impl Display for ApiError {
 //     fn fmt(&self, f: &mut Formatter) -> Result {

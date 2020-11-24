@@ -1,12 +1,12 @@
 use actix_web::{web, Error, HttpRequest, HttpResponse, Responder};
-use chrono::NaiveDateTime;
-use serde::{Deserialize, Serialize};
-use tracing::{error, info};
+use serde::Deserialize;
+use tracing::{error};
 
-use super::auth::hash_password;
+use super::auth::{encrypt_private_key, hash_password, verify_password};
 use super::messenger::Messenger;
 use super::AppData;
-use database::{fetch_auth, fetch_balance, PgPool};
+use database::models::NewCredentials;
+use database::{fetch_auth, fetch_balance, insert_auth};
 
 #[derive(Deserialize)]
 pub struct AccountData {
@@ -33,43 +33,33 @@ pub struct UpdateBalanceJson {
     amount: i32,
 }
 
+// TODO attribute ID to every request
+
 pub async fn authenticate(
     app_data: web::Data<AppData>,
     auth_data: web::Json<AuthData>,
 ) -> impl Responder {
-    let secret_key = &app_data.secret_key;
     let pool = &app_data.pool;
-    /*
-        body = await decode_request(request)
-        required_fields = ['public_key', 'password']
-        validate_fields(required_fields, body)
 
-        password = bytes(body.get('password'), 'utf-8')
-
-        auth_info = await self._database.fetch_auth_resource(
-            body.get('public_key'))
-        if auth_info is None:
-            raise ApiUnauthorized('No agent with that public key exists')
-
-        hashed_password = auth_info.get('hashed_password')
-        if not bcrypt.checkpw(password, bytes.fromhex(hashed_password)):
-            raise ApiUnauthorized('Incorrect public key or password')
-
-        token = generate_auth_token(
-            request.app['secret_key'], body.get('public_key'))
-
-        return json_response({'authorization': token})
-    */
     let connection = pool.get().expect("Could not get connection from pool");
 
     let public_key = auth_data.public_key.to_owned();
+    let password = auth_data.password.to_owned();
     let auth = web::block(move || fetch_auth(public_key, &*connection))
         .await
         .map_err(|err| {
             error!("{}", err);
             HttpResponse::InternalServerError().finish()
-        });
-    HttpResponse::Ok().body("OK") // TODO
+        })
+        .expect("Could not find credentials associated with that public key");
+    let is_match =
+        verify_password(password, auth.hashed_password).expect("Error verifying password");
+    if is_match == false {
+        HttpResponse::Unauthorized().body("Passwords did not match")
+    } else {
+        // TODO Generate and return {'authorization': token} (?)
+        HttpResponse::Ok().body("OK")
+    }
 }
 
 pub async fn deposit(
@@ -135,10 +125,14 @@ pub async fn add_account(
 }
 
 pub async fn add_merchant(
-    _app_data: web::Data<AppData>,
+    app_data: web::Data<AppData>,
     merchant_data: web::Json<MerchantData>,
 ) -> impl Responder {
     let messenger: Messenger = Messenger::new("secp256k1");
+
+    let pool = &app_data.pool;
+
+    let connection = pool.get().expect("Could not get connection from pool");
 
     let (public_key, private_key): (String, String) = messenger.get_new_key_pair();
 
@@ -151,21 +145,20 @@ pub async fn add_merchant(
         )
         .await;
 
-    let hashed_password = hash_password(merchant_data.password.to_owned());
-    /*
-        encrypted_private_key = encrypt_private_key(
-            request.app['aes_key'], public_key, private_key)
-        hashed_password = hash_password(body.get('password'))
+    let hashed_password =
+        hash_password(merchant_data.password.to_owned()).expect("Could not hash password");
 
-        await self._database.create_auth_entry(
-            public_key, encrypted_private_key, hashed_password)
+    let encrypted_private_key = encrypt_private_key(public_key.clone(), private_key);
 
-        token = generate_auth_token(
-            request.app['secret_key'], public_key)
+    let credentials = NewCredentials {
+        public_key: &public_key,
+        hashed_password: &hashed_password,
+        encrypted_private_key: &encrypted_private_key,
+    };
 
-        return json_response({'authorization': token})
-    */
+    let _result = insert_auth(credentials, &*connection);
 
+    // TODO generate and return {'authorization': token}
     HttpResponse::Ok().json("Add merchant transaction submitted to validator")
 }
 
@@ -201,6 +194,6 @@ pub async fn get_balance(
     }
 }
 
-pub async fn health_check(request: HttpRequest) -> impl Responder {
+pub async fn health_check(_request: HttpRequest) -> impl Responder {
     HttpResponse::Ok()
 }

@@ -12,7 +12,7 @@ use archer::{Account, ArcherStructs, ArcherTypes, Merchant, NAME as NAMESPACE};
 use archer_protobuf::deserialize_data;
 use database::models::{Block, NewAccount, NewMerchant};
 use database::*;
-use database::{PgPool, PgPooledConnection};
+use database::PgPool;
 
 const MAX_BLOCK_NUMBER: i64 = i64::MAX;
 

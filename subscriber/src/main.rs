@@ -2,7 +2,7 @@ use log::info;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use database::{establish_connection, fetch_last_known_blocks, PgPool};
+use database::{fetch_last_known_blocks, PgPool};
 
 pub mod event_handling;
 pub mod subscriber;

@@ -1,7 +1,7 @@
 // use std::convert::TryFrom;
-use serde::Deserialize;
-use std::sync::Arc;
-use tracing::{error, info};
+// use serde::Deserialize;
+// use std::sync::Arc;
+// use tracing::{error, info};
 // use diesel::pg::PgConnection;
 use actix_web::dev::{Server, ServiceRequest};
 use actix_web::{web, App, Error, HttpServer};
@@ -19,10 +19,11 @@ pub mod services;
 use archer_config::get_configuration;
 use database::{establish_connection, PgPool};
 
+pub const AES_KEY: &str = "ffffffffffffffffffffffffffffffff";
+pub const SECRET_KEY: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
 pub struct AppData {
-    pool: PgPool,
-    aes_key: String,
-    secret_key: String,
+    pub pool: PgPool,
 }
 
 #[actix_rt::main]
@@ -44,18 +45,12 @@ async fn main() -> std::io::Result<()> {
 }
 
 fn run(listener: TcpListener, pool: PgPool) -> Result<Server, std::io::Error> {
-    
-
     // TODO !! find solution for keys in production
-    let data = web::Data::new(AppData {
-        pool,
-        aes_key: String::from("ffffffffffffffffffffffffffffffff"),
-        secret_key: String::from("ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"),
-    });
+    let data = web::Data::new(AppData { pool });
 
     let server = HttpServer::new(move || {
         let auth = HttpAuthentication::bearer(validator);
-        
+
         App::new()
             .wrap(auth)
             .wrap(TracingLogger)
@@ -93,59 +88,6 @@ async fn validator(
         Err(_) => Err(AuthenticationError::from(config).into()),
     }
 }
-
-/*
-def encrypt_private_key(aes_key, public_key, private_key):
-    init_vector = bytes.fromhex(public_key[:32])
-    cipher = AES.new(bytes.fromhex(aes_key), AES.MODE_CBC, init_vector)
-    return cipher.encrypt(private_key)
-*/
-
-fn encrypt_private_key(aes_key: String, public_key: String, private_key: String) -> String {
-    // get bytes from hex (public key[..32])
-    // generate a cipher using AES
-    // encrypt private key
-    String::from("")
-}
-
-/*
-def decrypt_private_key(aes_key, public_key, encrypted_private_key):
-    init_vector = bytes.fromhex(public_key[:32])
-    cipher = AES.new(bytes.fromhex(aes_key), AES.MODE_CBC, init_vector)
-    private_key = cipher.decrypt(bytes.fromhex(encrypted_private_key))
-    return private_key
-*/
-
-fn decrypt_private_key(aes_key: String, public_key: String, private_key: String) -> String {
-    // get bytes from hex (public key[..32])
-    // generate a cipher using AES
-    // get private key by decrypting it using the cipher
-    String::from("")
-}
-
-/*
-async def _authorize(self, request):
-        token = request.headers.get('AUTHORIZATION')
-        if token is None:
-            raise ApiUnauthorized('No auth token provided')
-        token_prefixes = ('Bearer', 'Token')
-        for prefix in token_prefixes:
-            if prefix in token:
-                token = token.partition(prefix)[2].strip()
-        try:
-            token_dict = deserialize_auth_token(request.app['secret_key'],
-                                                token)
-        except BadSignature:
-            raise ApiUnauthorized('Invalid auth token')
-        public_key = token_dict.get('public_key')
-
-        auth_resource = await self._database.fetch_auth_resource(public_key)
-        if auth_resource is None:
-            raise ApiUnauthorized('Token is not associated with an agent')
-        return decrypt_private_key(request.app['aes_key'],
-                                   public_key,
-                                   auth_resource['encrypted_private_key'])
-*/
 
 /*
 def parse_args(args):

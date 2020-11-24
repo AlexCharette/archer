@@ -2,7 +2,6 @@ use protobuf::{Message, RepeatedField};
 // use sawtooth_sdk::messages::transaction::Transaction;
 use sawtooth_sdk::messages::batch::{Batch, BatchList};
 use sawtooth_sdk::signing::Signer;
-use std::convert::TryFrom;
 
 use archer::{calculate_account_address, calculate_merchant_address};
 use archer_protobuf::payload::{Payload as PayloadPB, Payload_Action};
