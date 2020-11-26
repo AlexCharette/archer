@@ -375,7 +375,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "api"
+name = "archer"
+version = "0.1.0"
+dependencies = [
+ "ring",
+]
+
+[[package]]
+name = "archer-api"
 version = "0.1.0"
 dependencies = [
  "actix-rt",
@@ -401,18 +408,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "archer"
-version = "0.1.0"
-dependencies = [
- "ring",
-]
-
-[[package]]
 name = "archer-config"
 version = "0.1.0"
 dependencies = [
  "config",
  "serde 1.0.117",
+]
+
+[[package]]
+name = "archer-processor"
+version = "0.1.0"
+dependencies = [
+ "archer",
+ "archer-config",
+ "archer-protobuf",
+ "log 0.4.11",
+ "protobuf",
+ "sawtooth-sdk",
 ]
 
 [[package]]
@@ -422,6 +434,27 @@ dependencies = [
  "archer",
  "protobuf",
  "protobuf-codegen-pure",
+]
+
+[[package]]
+name = "archer-subscriber"
+version = "0.1.0"
+dependencies = [
+ "archer",
+ "archer-config",
+ "archer-protobuf",
+ "chrono",
+ "ctrlc",
+ "database",
+ "diesel",
+ "lazy_static",
+ "log 0.4.11",
+ "protobuf",
+ "regex",
+ "sawtooth-sdk",
+ "structopt",
+ "uuid 0.8.1",
+ "zmq",
 ]
 
 [[package]]
@@ -1827,18 +1860,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "processor"
-version = "0.1.0"
-dependencies = [
- "archer",
- "archer-config",
- "archer-protobuf",
- "log 0.4.11",
- "protobuf",
- "sawtooth-sdk",
-]
-
-[[package]]
 name = "protobuf"
 version = "2.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2478,27 +2499,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "subscriber"
-version = "0.1.0"
-dependencies = [
- "archer",
- "archer-config",
- "archer-protobuf",
- "chrono",
- "ctrlc",
- "database",
- "diesel",
- "lazy_static",
- "log 0.4.11",
- "protobuf",
- "regex",
- "sawtooth-sdk",
- "structopt",
- "uuid 0.8.1",
- "zmq",
 ]
 
 [[package]]

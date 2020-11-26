@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.8'
 
 services:
   archer-processor:
@@ -11,12 +11,12 @@ services:
       - '.:/archer'
     command: cargo run
 
-  archer-rest-api:
+  archer-api:
     build:
       context: .
       dockerfile: ./api/Dockerfile
-    image: archer-rest-api
-    container_name: archer-rest-api
+    image: archer-api
+    container_name: archer-api
     volumes:
       - .:/archer
     ports:
@@ -107,3 +107,13 @@ services:
     restart: always
     ports:
       - '8080:8080'
+
+  shell:
+    image: hyperledger/sawtooth-shell:chime
+    container_name: sawtooth-shell-default
+    depends_on:
+      - rest-api
+    entrypoint: "bash -c \"\
+        sawtooth keygen && \
+        tail -f /dev/null \
+        \""
