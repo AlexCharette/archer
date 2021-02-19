@@ -18,9 +18,9 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 FROM rust AS builder
 WORKDIR /archer-processor
-COPY . .
 COPY --from=cacher /archer-processor/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo
+COPY . .
 
 RUN apt-get update -qq && \
     apt-get install -y -qq libzmq3-dev
@@ -28,9 +28,15 @@ RUN apt-get update -qq && \
 RUN cargo build --release --bin archer-processor
 
 FROM debian:buster-slim AS runtime
-
 WORKDIR /archer-processor
-COPY --from=builder /archer-processor/target/release/archer-processor /usr/local/bin
+
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends openssl libzmq3-dev \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /archer-processor/target/release/archer-processor archer-processor
 COPY configuration configuration
 ENV APP_ENVIRONMENT local
-ENTRYPOINT [ "./usr/local/bin/archer-processor" ]
+ENTRYPOINT [ "./archer-processor" ]

@@ -2,8 +2,6 @@
 extern crate diesel;
 
 use std::convert::TryFrom;
-use std::env;
-// use log::{error, info, warn};
 use diesel::connection::*;
 use diesel::expression_methods::NullableExpressionMethods;
 use diesel::pg::PgConnection;
@@ -12,6 +10,7 @@ use diesel::query_dsl::{QueryDsl, RunQueryDsl};
 use diesel::r2d2::{ConnectionManager, Pool, PoolError, PooledConnection};
 use diesel::result::QueryResult;
 use dotenv::dotenv;
+use archer_config::get_configuration;
 
 pub mod models;
 pub mod schema;
@@ -26,8 +25,13 @@ pub fn init_pool(database_url: &str) -> Result<PgPool, PoolError> {
 
 pub fn establish_connection() -> PgPool {
     dotenv().ok();
-
-    let database_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    // postgres://acharette:c3ntr4lc0mm4nd1%21@localhost/archer_test
+    let configuration = get_configuration().expect("Could not retrieve configuration");
+    let database_url: String = format!(
+        "postgres://{}:{}@{}/{}", 
+        configuration.database.username, configuration.database.password, 
+        configuration.database.host, configuration.database.name
+    );
     init_pool(&database_url).expect("Failed to create pool.")
 }
 

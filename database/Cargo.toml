@@ -5,6 +5,7 @@ authors = ["Alexander Charette <acharette.wake@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+archer-config = { path = "../config" }
 dotenv = "0.15.0"
 serde = "1.0.117"
 chrono = "0.4.19"

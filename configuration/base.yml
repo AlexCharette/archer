@@ -1,10 +1,10 @@
 application:
   port: 8000
 database:
-  host: "localhost"
+  host: "postgres"
   port: 5432
   username: "acharette"
-  password: "centralcommand1!"
+  password: "c3ntr4lc0mm4nd1!"
   name: "archer_test"
 subscriber:
   host: "localhost"

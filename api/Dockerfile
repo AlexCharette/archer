@@ -19,19 +19,25 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 FROM rust AS builder
 WORKDIR /archer-api
-COPY . .
 COPY --from=cacher /archer-api/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo
+COPY . .
 
 RUN apt-get update -qq && \
-    apt-get install -y -qq libzmq3-dev
+    apt-get install -y -qq libzmq3-dev 
 
 RUN cargo build --release --bin archer-api
 
 FROM debian:buster-slim AS runtime
 WORKDIR /archer-api
 
-COPY --from=builder /archer-api/target/release/archer-api /usr/local/bin
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends libpq-dev libzmq3-dev \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /archer-api/target/release/archer-api archer-api
 COPY configuration configuration
 ENV APP_ENVIRONMENT local
-ENTRYPOINT [ "./usr/local/bin/archer-api" ]
+ENTRYPOINT [ "./archer-api" ]

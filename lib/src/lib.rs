@@ -65,7 +65,7 @@ pub enum ArcherTypes {
 
 pub fn get_archer_prefix() -> String {
     let result = digest::digest(&digest::SHA512, NAME.as_bytes());
-    let result = std::str::from_utf8(result.as_ref()).expect("Could not convert digest to str");
+    let result = to_hex_string(result.as_ref()); 
     result[..6].to_string()
 }
 
@@ -78,7 +78,7 @@ pub fn get_type_prefix(archer_type: &ArcherTypes) -> Option<String> {
 
 pub fn calculate_account_address(name: &str) -> String {
     let result = digest::digest(&digest::SHA512, name.as_bytes());
-    let result = std::str::from_utf8(result.as_ref()).expect("Could not convert digest to str");
+    let result = to_hex_string(result.as_ref()); 
     let mut prefix = get_archer_prefix();
     prefix.push_str(&get_type_prefix(&ArcherTypes::Account).expect("Invalid archer type"));
     prefix + &result[..62].to_string()
@@ -86,7 +86,7 @@ pub fn calculate_account_address(name: &str) -> String {
 
 pub fn calculate_merchant_address(public_key: &str) -> String {
     let result = digest::digest(&digest::SHA512, public_key.as_bytes());
-    let result = std::str::from_utf8(result.as_ref()).expect("Could not convert digest to str");
+    let result = to_hex_string(result.as_ref()); 
     let mut prefix = get_archer_prefix();
     prefix.push_str(&get_type_prefix(&ArcherTypes::Merchant).expect("Invalid archer type"));
     prefix + &result[..62].to_string()
@@ -109,35 +109,37 @@ pub unsafe fn any_as_u8_slice<T: Sized>(param: &T) -> &[u8] {
     ::std::slice::from_raw_parts((param as *const T) as *const u8, ::std::mem::size_of::<T>())
 }
 
-// #[cfg(test)]
-// mod test {
-//     use crate::archer::*;
+#[cfg(test)]
+mod test {
+    use super::*;
 
-//     #[test]
-//     fn test_archer_prefix() {}
+    #[test]
+    fn test_archer_prefix() {
+        let prefix = get_archer_prefix();
+    }
 
-//     #[test]
-//     fn test_type_prefix() {
-//         assert_eq!(
-//             get_type_prefix(&ArcherTypes::Account).unwrap(),
-//             String::from("00")
-//         );
-//     }
+    #[test]
+    fn test_type_prefix() {
+        assert_eq!(
+            get_type_prefix(&ArcherTypes::Account).unwrap(),
+            String::from("00")
+        );
+    }
 
-//     #[test]
-//     fn test_account_address() {
-//         // create public key
-//     }
+    #[test]
+    fn test_account_address() {
+        // create public key
+    }
 
-//     #[test]
-//     fn test_address_type() {
-//         assert_eq!(get_address_type("12345600").unwrap(), ArcherTypes::Account);
-//         assert_eq!(get_address_type("address1234"), None);
-//     }
+    #[test]
+    fn test_address_type() {
+        assert_eq!(get_address_type("12345600").unwrap(), ArcherTypes::Account);
+        assert_eq!(get_address_type("address1234"), None);
+    }
 
-//     #[test]
-//     fn test_to_hex_string() {}
+    #[test]
+    fn test_to_hex_string() {}
 
-//     #[test]
-//     fn test_as_u8_slice() {}
-// }
+    #[test]
+    fn test_as_u8_slice() {}
+}
