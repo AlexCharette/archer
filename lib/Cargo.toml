@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 ring = "0.16.16"
+regex = "1.4.3"

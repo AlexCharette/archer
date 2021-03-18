@@ -90,3 +90,38 @@ pub fn convert_proto_to_merchant(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use archer::{get_address_type, Account, ArcherStructs, ArcherTypes, Merchant};
+
+    #[test]
+    fn proto_to_account() {
+        let data_type = ArcherTypes::Account;
+        let name = "John Doe";
+        let number: u32 = 12345;
+        let mut entry = AccountPB::default();
+        entry.set_name(name.to_string());
+        entry.set_number(number);
+        entry.set_balance(1000);
+        entry.compute_size();
+        let account = convert_proto_to_account(data_type, &entry).unwrap();
+        let result = account.account().unwrap();
+        assert_eq!(&result.name, name);
+    }
+
+    #[test]
+    fn proto_to_merchant() {
+        let data_type = ArcherTypes::Merchant;
+        let name = "Bob's Poutine";
+        let mut entry = MerchantPB::default();
+        entry.set_public_key("abcdefghijklmnopqrstuvwxyz1234567890".to_string());
+        entry.set_name(name.to_string());
+        entry.set_timestamp(10003456);
+        entry.compute_size();
+        let merchant = convert_proto_to_merchant(data_type, &entry).unwrap();
+        let result = merchant.merchant().unwrap();
+        assert_eq!(&result.name, name);
+    }
+}

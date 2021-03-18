@@ -109,3 +109,10 @@ impl ArcherPayload {
         self.payload.get_number()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    
+}

@@ -65,7 +65,7 @@ pub enum ArcherTypes {
 
 pub fn get_archer_prefix() -> String {
     let result = digest::digest(&digest::SHA512, NAME.as_bytes());
-    let result = to_hex_string(result.as_ref()); 
+    let result = to_hex_string(result.as_ref());
     result[..6].to_string()
 }
 
@@ -114,32 +114,58 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_archer_prefix() {
-        let prefix = get_archer_prefix();
-    }
-
-    #[test]
-    fn test_type_prefix() {
+    fn hex_string() {
+        let name = "John Doe";
+        let result = digest::digest(&digest::SHA512, name.as_bytes());
+        let result = to_hex_string(result.as_ref());
         assert_eq!(
-            get_type_prefix(&ArcherTypes::Account).unwrap(),
-            String::from("00")
+            &result, 
+            "1fcb45d41a91df3139cb682a7895cf39636bab30d7f464943ca4f2287f72c06f4c34b10d203b26ccca06e9051c024252657302dd8ad3b2086c6bfd9bd34fa407",
         );
     }
 
     #[test]
-    fn test_account_address() {
-        // create public key
+    fn u8_slice() {
+        // todo!();
     }
 
     #[test]
-    fn test_address_type() {
+    fn archer_prefix() {
+        assert_eq!(get_archer_prefix(), "9abef4");
+    }
+
+    #[test]
+    fn type_prefix() {
+        assert_eq!(
+            get_type_prefix(&ArcherTypes::Account).unwrap(),
+            String::from("00")
+        );
+        assert_eq!(
+            get_type_prefix(&ArcherTypes::Merchant).unwrap(),
+            String::from("01")
+        );
+    }
+
+    #[test]
+    fn account_address() {
+        let name = "John Doe";
+        let result = calculate_account_address(name);
+        assert_eq!(&result[..8].to_string(), "9abef400");
+        assert_eq!(result.chars().count(), 70);
+    }
+
+    #[test]
+    fn merchant_address() {
+        let public_key = "abcdefghijklmnopqrstuv";
+        let result = calculate_merchant_address(public_key);
+        assert_eq!(&result[..8].to_string(), "9abef401");
+        assert_eq!(result.chars().count(), 70);
+    }
+
+
+    #[test]
+    fn address_type() {
         assert_eq!(get_address_type("12345600").unwrap(), ArcherTypes::Account);
         assert_eq!(get_address_type("address1234"), None);
     }
-
-    #[test]
-    fn test_to_hex_string() {}
-
-    #[test]
-    fn test_as_u8_slice() {}
 }

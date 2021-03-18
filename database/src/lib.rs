@@ -167,3 +167,15 @@ pub fn fetch_auth(
     auth.filter(public_key.eq(public_key_param))
         .get_result::<models::Credentials>(connection)
 }
+
+#[cfg(test)]
+mod test {
+    use crate::fetch_auth;
+
+    use super::*;
+
+    #[test]
+    fn fetches_auth() {
+        // TODO
+    }
+}
