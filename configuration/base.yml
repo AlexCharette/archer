@@ -4,7 +4,6 @@ database:
   host: "postgres"
   port: 5432
   username: "acharette"
-  password: "c3ntr4lc0mm4nd1!"
   name: "archer_test"
 subscriber:
   host: "localhost"
